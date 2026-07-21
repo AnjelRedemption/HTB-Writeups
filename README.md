@@ -7,7 +7,7 @@ Write-ups for retired Hack The Box machines and my home lab work, focused on Act
 
 ## Structure
 - `/machines` — individual retired HTB machine write-ups
-- `/template` — write-up template used for consistency across entries
+- `template.md` — write-up template used for consistency across entries
 
 ## Note
 All machine write-ups cover **retired** content only, per HTB's platform guidelines. Flags are redacted.
