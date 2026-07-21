@@ -10,7 +10,7 @@ SMB share leaked credentials for unknown user. Created potential user list and s
 ## Reconnaissance
 - Nmap scan shows Windows device and standard Active Directory ports
 - SMB is open, this will be our first point of Enumeration
-![Nmap_Scan](Nmap_scan.png)
+![Nmap scan](images/Nmap_Scan.png)
 
 ## Enumeration
 - Accessing SMB using smbclient and anonymous auth allows access
