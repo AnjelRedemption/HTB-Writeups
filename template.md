@@ -2,7 +2,6 @@
 
 **Difficulty:** [Easy / Medium / Hard / Insane]
 **OS:** [Linux / Windows]
-**IP:** [10.10.x.x]
 **Tags:** [e.g., Active Directory, Kerberoasting, SUID, Web]
 
 ## Summary
