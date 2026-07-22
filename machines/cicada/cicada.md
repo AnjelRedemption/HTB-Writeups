@@ -15,13 +15,13 @@ SMB share leaked credentials for unknown user. Created potential user list and s
 ## Enumeration
 - Accessing SMB using smbclient and anonymous auth allows access
 - File located under HR folder
- ![[Pasted image 20260721123049.png]]
+ ![SMB-HR](images/SMB_HR.png)
 - Reading the contents provides a potential password
-![[Pasted image 20260721123333.png]]
+![new-hire](images/new_hire.png)
 ## Initial Foothold
 - First a list of potential users is created
 - Using Impacket's tool "lookupsid" and guest authentication we are able to create a user list
-![[Pasted image 20260721123459.png]]
+![impacket](images/SMB_HR.png)
 ![[Pasted image 20260721123539.png]]
 - Using the userlist we created and NetExec to spray for potential users and locating michael.wrightson with the leaked credential
 ![[Pasted image 20260721123726.png]]
