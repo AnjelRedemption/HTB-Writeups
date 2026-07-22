@@ -11,6 +11,7 @@ Windows box that does not provide any credentials. SMB enumeration doesn't provi
 
 ## Reconnaissance
 - Nmap scan
+
 ![nmap](images/forest-1.png)
 - Time skew present, so any Kerberos will need to update time to match domain controller
 ![clock](images/forest-2.png)
