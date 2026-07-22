@@ -42,7 +42,7 @@ SMB share leaked credentials for unknown user. Created potential user list and s
 ![priv-sesc](images/priv-esc.png)
 - This privilege allows users to perform backup operations, including registry backups of SAM/SECURITY/SYSTEM
 - Running the backup commands and exporting them
-![sam](images/samv-sav.png)
+![sam](images/sam-sav.png)
 - using Impacket's secretsdump tool to get hash of the administrator
 ![secrets](images/secretsdump.png)
 - Testing with Evil-winrm confirms access and root flag
