@@ -21,32 +21,32 @@ SMB share leaked credentials for unknown user. Created potential user list and s
 ## Initial Foothold
 - First a list of potential users is created
 - Using Impacket's tool "lookupsid" and guest authentication we are able to create a user list
-![impacket](images/SMB_HR.png)
-![[Pasted image 20260721123539.png]]
+![impacket](images/loookupsid.png)
+![impacket](images/loookupsid2.png)
 - Using the userlist we created and NetExec to spray for potential users and locating michael.wrightson with the leaked credential
-![[Pasted image 20260721123726.png]]
+![userlist](images/user_spraying.png)
 - Using this new user to further enumerate the users confirms password located in description field
-![[Pasted image 20260721124813.png]]
+![discription](images/nxc_users.png)
 - Checking this users access confirms they can read the Dev share
-![[Pasted image 20260721125019.png]]
+![dev](images/SMB_dev.png)
 - Accessing Dev as david user and locating a Powershell script
-![[Pasted image 20260721125104.png]]
+![script](images/smb_dev.png)
 - Reading the script exposed plain text credentials for emily.oscars
-![[Pasted image 20260721125242.png]]
+![script](images/powershell_script.png)
 - Confirmed this user has Remote Management access
 - Using Evil-Winrm to gain shell access
-![[Pasted image 20260721125354.png]]
+![evil-winrm](images/evil-winrm-cicada.png)
 
 ## Privilege Escalation
 - Once initial access was gained, user enumeration shows SeBackupPrivilege is enabled
-![[Pasted image 20260721125443.png]]
+![priv-sesc](images/priv-esc.png)
 - This privilege allows users to perform backup operations, including registry backups of SAM/SECURITY/SYSTEM
 - Running the backup commands and exporting them
-![[Pasted image 20260721125657.png]]
+![sam](images/samv-sav.png)
 - using Impacket's secretsdump tool to get hash of the administrator
-![[Pasted image 20260721125807.png]]
+![secrets](images/secretsdump.png)
 - Testing with Evil-winrm confirms access and root flag
-![[Pasted image 20260721125915.png]]
+![root](images/root.png)
 ## Key Takeaways
 - Enumeration of potential AD users is key
 	- Additional Tools that could work are Kerbrute or Enum4Linux
