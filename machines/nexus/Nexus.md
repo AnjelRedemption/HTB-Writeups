@@ -311,9 +311,9 @@ Mon 2026-07-27 01:36:31 UTC 1 day 4h Sat 2026-07-25 20:16:09 UTC  1h 6min ago fs
 - From here, we can create a repo and create a python script to add SSH keygen to authorized_keys
 - We first see if we can log in as jones in gitea (successful)
 - Then we create a new repo (you can name this anything, lets be stealthy and name it "KrayinUpdate")
-- ![http](images/Nexus-15.png)
+- ![http](images/nexus-15.png)
 - We also want to make sure we make a repository a template
-- ![http](images/Nexus-16.png)
+- ![http](images/nexus-16.png)
 - Then we need to generate a ssh key
 ```shell
 ssh-keygen -t ed25519 -f /tmp/.k -N ''
