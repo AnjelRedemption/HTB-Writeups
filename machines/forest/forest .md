@@ -3,15 +3,10 @@
 # Forest — Hack The Box
 
 | Attribute | Details |
-
 |---|---|
-
 | Difficulty | Easy |
-
 | OS | Windows |
-
 | Status | Retired |
-
 | Focus | Active Directory, AS-REP roasting, BloodHound, ACL abuse, DCSync |
 
 ## Overview

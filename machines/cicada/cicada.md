@@ -1,15 +1,10 @@
 # Cicada — Hack The Box
 
 | Attribute | Details |
-
 |---|---|
-
 | Difficulty | Easy |
-
 | OS | Windows |
-
 | Status | Retired |
-
 | Focus | SMB enumeration, credential exposure, password spraying, WinRM, SeBackupPrivilege |
 
 ## Overview
