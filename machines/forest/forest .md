@@ -1,13 +1,33 @@
 
 
-# Forest — HTB Write-up
+# Forest — Hack The Box
 
-**Difficulty:** Easy
-**OS:** Windows
-**Tags:**  Active Directory, AS-REP Roasting, User enumeration
+| Attribute | Details |
 
-## Summary
-Windows box that does not provide any credentials. SMB enumeration doesn't provide any information, but knowledge of Active Directory will help gain a foothold through AS-REP roasting. Once on the machine, Windows privilege escalation meets a dead end, but reviewing ACL's provides a chain to domain compromise. 
+|---|---|
+
+| Difficulty | Easy |
+
+| OS | Windows |
+
+| Status | Retired |
+
+| Focus | Active Directory, AS-REP roasting, BloodHound, ACL abuse, DCSync |
+
+## Overview
+
+Forest demonstrates an Active Directory compromise beginning with domain user
+enumeration and identification of a service account configured without Kerberos
+preauthentication. AS-REP roasting exposes crackable authentication material for
+the `svc-alfresco` account, providing initial access through WinRM. BloodHound
+analysis then reveals an Active Directory permissions chain involving the
+Account Operators and Exchange Windows Permissions groups. These permissions can
+be abused to obtain `WriteDACL` over the domain, grant DCSync rights, and
+recover the domain Administrator NTLM hash.
+
+## Attack Path
+
+`User Enumeration → AS-REP Roasting → Password Cracking → WinRM → BloodHound → ACL Abuse → WriteDACL → DCSync → Administrator` 
 
 ## Reconnaissance
 - Nmap scan
@@ -32,8 +52,8 @@ Windows box that does not provide any credentials. SMB enumeration doesn't provi
 - With a list of users, we can use several tools to proceed.
 
 ![users2](images/forest-6.png)
-- First we check for anonymous LDAP (pre-auth not required) or also known as AS-REP Roasting
-- We get a hash of the svc-alfresco user
+- With a list of candidate domain users, I tested for accounts that did not require Kerberos preauthentication `svc-alfresco` was configured without preauthentication, making the account vulnerable to AS-REP roasting.
+- Using Impacket's `GetNPUsers.py`, I requested an AS-REP for the account and obtained material that could be cracked offline with Hashcat.
 
 ![hash](images/forest-6.png)
 - Using hashcat to crack and get the plain text password

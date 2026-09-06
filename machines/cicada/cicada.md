@@ -1,11 +1,31 @@
-# Cicada — HTB Write-up
+# Cicada — Hack The Box
 
-**Difficulty:** Easy
-**OS:** Windows
-**Tags:** Active Directory, Enumeration
+| Attribute | Details |
 
-## Summary
-SMB share leaked credentials for unknown user. Created potential user list and spraying to locate another user with password. This user has access to another share with additional leaked credentials and remote access. Once on the box, the user has SeBackupPrivilege to capture SAM information and gain Administrator access.
+|---|---|
+
+| Difficulty | Easy |
+
+| OS | Windows |
+
+| Status | Retired |
+
+| Focus | SMB enumeration, credential exposure, password spraying, WinRM, SeBackupPrivilege |
+
+## Overview
+
+Cicada demonstrates a Windows Active Directory compromise driven primarily by
+poor credential management and excessive exposure of sensitive information.
+Anonymous SMB access reveals an onboarding password, while domain user
+enumeration provides valid usernames for controlled password spraying.
+Additional credentials are exposed through an Active Directory user description
+and a PowerShell script stored on a network share. The final user possesses
+`SeBackupPrivilege`, allowing the SAM and SYSTEM registry hives to be copied
+and the local Administrator NTLM hash to be recovered.
+
+## Attack Path
+
+`Anonymous SMB → Onboarding Password → User Enumeration → Password Spray → Credential Exposure → DEV Share → WinRM → SeBackupPrivilege → Administrator`
 
 ## Reconnaissance
 - Nmap scan shows Windows device and standard Active Directory ports

@@ -1,11 +1,26 @@
 
-Nexus — HTB Write-up
+# Nexus — Hack The Box
 
-**Difficulty:** Easy
-**OS:** Linux
-**Tags:** git, 
+| Attribute | Details |
+|---|---|
+| Difficulty | Easy |
+| OS | Linux |
+| Status | Retired |
+| Focus | Gitea, credential exposure, authenticated RCE, Git internals, path traversal |
 
-## Summary
+## Overview
+
+Nexus demonstrates a multi-stage Linux compromise beginning with information
+exposure in a public Gitea repository. Leaked credentials provide access to a
+Krayin CRM instance vulnerable to authenticated remote code execution.
+Post-exploitation reveals reused credentials for a local user. Privilege
+escalation is achieved by analyzing a root-owned Gitea synchronization process
+and abusing unsafe handling of Git tree paths to write an attacker-controlled
+SSH key into root's `authorized_keys`.
+
+## Attack Path
+
+`Gitea → Credential Leak → Krayin RCE → Password Reuse → SSH → Gitea Sync → Path Traversal → Root`
 
 
 ## Reconnaissance
