@@ -134,7 +134,7 @@ Nmap done: 1 IP address (1 host up) scanned in 3.23 seconds
            Raw packets sent: 5 (196B) | Rcvd: 2 (72B)
 ```
 
-With carerr@job.local listed on website and instructions to send libre office document - confirming email address and potential hash leak or exploit
+With career@job.local listed on website and instructions to send libre office document - confirming email address and potential hash leak or exploit
 
 ```shell
 swaks \
@@ -425,6 +425,7 @@ C:\inetpub\wwwroot>dir
 ### Web Root Exploitation
 
 Navigating to http://job.local/hello.aspx confirms trigger of code and execution
+
 ![http](images/job-webpage-02.png)
 
 Crafting aspx webshell or reverse shell can be accomplished in many ways - msfvenom is a popular choice along with using ANTAK 
@@ -521,36 +522,37 @@ PS> C:\programdata\godpotato.exe -cmd 'powershell type C:\Users\Administrator\De
 <REDACTED>
 ```
 ## Key Takeaways
-Application workflows can be the attack surface. The useful path was not a conventional web vulnerability; it was the exposed recruitment workflow that caused a submitted LibreOffice document to be opened on the target.
 
-A captured NTLM hash is not always the end goal. The first malicious ODT successfully triggered outbound authentication, but the captured NetNTLMv2 material was a dead end. Understanding the document-processing behavior led to direct code execution instead.
+* Application workflows can be the attack surface. The useful path was not a conventional web vulnerability; it was the exposed recruitment workflow that caused a submitted LibreOffice document to be opened on the target.
 
-Custom group membership deserves targeted ACL enumeration. Membership in JOB\developers was significant because the group had full control of the IIS web root. Checking high-value directories with icacls quickly exposed the privilege boundary.
+* A captured NTLM hash is not always the end goal. The first malicious ODT successfully triggered outbound authentication, but the captured NetNTLMv2 material was a dead end. Understanding the document-processing behavior led to direct code execution instead.
 
-Writable web roots can change execution context. Writing an ASPX file to C:\inetpub\wwwroot transformed access as jack.black into server-side execution under the IIS application-pool identity.
+* Custom group membership deserves targeted ACL enumeration. Membership in JOB\developers was significant because the group had full control of the IIS web root. Checking high-value directories with icacls quickly exposed the privilege boundary.
 
-Always inspect privileges after changing users or service contexts. The DefaultAppPool account exposed SeImpersonatePrivilege, which provided the final route to SYSTEM.
+* Writable web roots can change execution context. Writing an ASPX file to C:\inetpub\wwwroot transformed access as jack.black into server-side execution under the IIS application-pool identity.
 
-Treat failed exploitation as information. The unsuccessful hash-cracking and initial Metasploit attempts still confirmed that the ODT was being opened and that the host could reach the attacker, narrowing the problem to payload delivery rather than exploitability.
+* Always inspect privileges after changing users or service contexts. The DefaultAppPool account exposed SeImpersonatePrivilege, which provided the final route to SYSTEM.
+
+* Treat failed exploitation as information. The unsuccessful hash-cracking and initial Metasploit attempts still confirmed that the ODT was being opened and that the host could reach the attacker, narrowing the problem to payload delivery rather than exploitability.
 
 ## Tools Used
 
-Nmap — Port and service enumeration
-ffuf — Virtual-host enumeration
-smbclient — SMB enumeration
-NetExec / nxc — SMB validation and host information
-Swaks — SMTP testing and delivery of ODT attachments
-Metasploit Framework
-auxiliary/fileformat/odt_badodt
-exploit/multi/misc/openoffice_document_macro
-Responder — NetNTLMv2 credential capture
-Python HTTP Server — Hosted PowerShell payloads and transferred files
-Netcat / rlwrap — Reverse-shell listener
-whoami — User, group, and privilege enumeration
-icacls — Windows filesystem ACL enumeration
-certutil — File transfer to the Windows target
-ANTAK — ASPX web shell
-GodPotato — SeImpersonatePrivilege abuse for SYSTEM escalation
+`Nmap` — `Port and service enumeration`
+`ffuf` — `Virtual-host enumeration`
+`smbclient` — `SMB enumeration`
+`NetExec / nxc` — `SMB validation and host information`
+`Swaks` — `SMTP testing and delivery of ODT attachments`
+`Metasploit Framework`
+`auxiliary/fileformat/odt_badodt`
+`exploit/multi/misc/openoffice_document_macro`
+`Responder` — `NetNTLMv2 credential capture`
+`Python HTTP Server` — `Hosted PowerShell payloads and transferred files`
+`Netcat/ rlwrap` — `Reverse-shell listener`
+`whoami` — `User, group, and privilege enumeration`
+`icacls` — `Windows filesystem ACL enumeration`
+`certutil` — `File transfer to the Windows target`
+`ANTAK` — `ASPX web shell`
+`GodPotato` — `SeImpersonatePrivilege abuse for SYSTEM escalation`
 
 ---
 
